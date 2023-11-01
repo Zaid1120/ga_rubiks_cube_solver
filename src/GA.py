@@ -1,4 +1,4 @@
-import rubiks
+import src.rubiks as rubiks
 import random
 
 moves = ["U", "U'", "R", "R'", "L", "L'", "D", "D'", "F", "F'", "B", "B'"]

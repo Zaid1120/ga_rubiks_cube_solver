@@ -1,4 +1,4 @@
-import rubiks
+import src.rubiks as rubiks
 import copy
 import unittest
 
