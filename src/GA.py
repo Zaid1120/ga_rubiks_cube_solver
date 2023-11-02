@@ -4,6 +4,46 @@ import rubiks
 
 moves = ["U", "U'", "R", "R'", "L", "L'", "D", "D'", "F", "F'", "B", "B'"]
 
+permutations = [  # borrowed from https://github.com/rvaccarim/genetic_rubik
+    # permutes two edges: U face, bottom edge and right edge
+    "F' L' B' R' U' R U' B L F R U R' U".split(" "),
+    # permutes two edges: U face, bottom edge and left edge
+    "F R B L U L' U B' R' F' L' U' L U'".split(" "),
+    # permutes two corners: U face, bottom left and bottom right
+    "U U B U U B' R R F R' F' U U F' U U F R'".split(" "),
+    # permutes three corners: U face, bottom left and top left
+    "U U R U U R' F F L F' L' U U L' U U L F'".split(" "),
+    # permutes three centers: F face, top, right, bottom
+    "U' B B D D L' F F D D B B R' U'".split(" "),
+    # permutes three centers: F face, top, right, left
+    "U B B D D R F F D D B B L U".split(" "),
+    # U face: bottom edge <-> right edge, bottom right corner <-> top right corner
+    "D' R' D R R U' R B B L U' L' B B U R R".split(" "),
+    # U face: bottom edge <-> right edge, bottom right corner <-> left right corner
+    "D L D' L L U L' B B R' U R B B U' L L".split(" "),
+    # U face: top edge <-> bottom edge, bottom left corner <-> top right corner
+    "R' U L' U U R U' L R' U L' U U R U' L U'".split(" "),
+    # U face: top edge <-> bottom edge, bottom right corner <-> top left corner
+    "L U' R U U L' U R' L U' R U U L' U R' U".split(" "),
+    # permutes three corners: U face, bottom right, bottom left and top left
+    "F' U B U' F U B' U'".split(" "),
+    # permutes three corners: U face, bottom left, bottom right and top right
+    "F U' B' U F' U' B U".split(" "),
+    # permutes three edges: F face bottom, F face top, B face top
+    "L' U U L R' F F R".split(" "),
+    # permutes three edges: F face top, B face top, B face bottom
+    "R' U U R L' B B L".split(" "),
+    # H permutation: U Face, swaps the edges horizontally and vertically
+    "M2 U M2 U U M2 U M2".split(" ")
+]
+
+# print((permutations))
+
+# sum = 0
+# for i in permutations:
+#     sum += 1
+# print(sum)
+
 
 cube_dev = {
     "U": [["U", "U", "U"], ["U", "U", "U"], ["U", "U", "U"]],
