@@ -15,6 +15,15 @@ cube_dev = {
 }
 
 
+def scramble_cube(cube, _moves):
+    modded_cube = copy.deepcopy(cube)
+    shuffle_moves = copy.deepcopy(_moves)
+    random.shuffle(shuffle_moves)
+    for move in shuffle_moves:
+        modded_cube = rubiks.make_move(modded_cube, move)
+    return modded_cube
+
+
 def apply_moves(cube, moves_sequence):
     modified_cube = copy.deepcopy(cube)
     for move in moves_sequence:
@@ -178,7 +187,10 @@ def mutate_with_scramble(sequence, mutation_rate=0.1):
     return new_sequence
 
 
+# scramble the cube with the shuffled moves
+scrambled_cube = scramble_cube(cube_dev, moves)
+print(f"new cube is: {scrambled_cube}")
 
-print(f"winner: {tournament_selection(init_population(), cube_dev)}")
+# print(f"winner: {tournament_selection(init_population(), cube_dev)}")
 # print(apply_moves(cube_dev,moves))
 # print(fitness(cube_dev))
