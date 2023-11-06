@@ -37,13 +37,6 @@ permutations = [  # borrowed from https://github.com/rvaccarim/genetic_rubik
     "M2 U M2 U U M2 U M2".split(" ")
 ]
 
-# print((permutations))
-
-# sum = 0
-# for i in permutations:
-#     sum += 1
-# print(sum)
-
 
 cube_dev = {
     "U": [["U", "U", "U"], ["U", "U", "U"], ["U", "U", "U"]],
@@ -71,12 +64,32 @@ def apply_moves(cube, moves_sequence):
     return modified_cube
 
 
-def random_sequence(length=25):
-    return [random.choice(moves) for _ in range(length)]
+# def random_sequence(length=25):
+#     return [random.choice(moves) for _ in range(length)]
+#
+#
+# def init_population(pop_size=100, sequence_length=25):
+#     return [random_sequence(sequence_length) for _ in range(pop_size)]
+
+def init_population(pop_size=100, sequence_length=25, moves=moves):
+    population = [[random.choice(moves) for _ in range(sequence_length)] for _ in range(pop_size)]
+    return population
 
 
-def init_population(pop_size=100, sequence_length=25):
-    return [random_sequence(sequence_length) for _ in range(pop_size)]
+def init_population_with_permutations(pop_size, sequence_length, permutations = permutations):
+    population = []
+    for _ in range(pop_size):
+        individual = []
+        while len(individual) < sequence_length:
+            permutation = random.choice(permutations)
+            individual.extend(permutation)
+            # If the individual sequence exceeds the desired length, truncate it.
+            individual = individual[:sequence_length]
+        population.append(individual)
+    return population
+
+
+# print(f"initial population: {init_population()[0]}")
 
 
 # fitness
@@ -96,16 +109,16 @@ def check_fitness(cube, moves_sequence):  # lower this is, the better - 0 means 
 
 
 # selection
-def tournament_selection(population, cube, tournament_size=3):
+def tournament_selection(population, cube, tournament_size=10):
     # randomly select tournament_size individuals from population
     tournament_individuals = random.sample(population, tournament_size)
-    print(f"tournament individuals: {tournament_individuals}")
+    # print(f"tournament individuals: {tournament_individuals}")
 
     # evaluate fitness of each individual
     fitness_scores = []
     for sequence in tournament_individuals:
         fitness_score = check_fitness(cube, sequence)
-        print(f"sequence: {sequence} \n score: {fitness_score} ")
+        # print(f"sequence: {sequence} \n score: {fitness_score} ")
         fitness_scores.append(fitness_score)
 
     # fitness_scores = [fitness(cube, sequence) for sequence in tournament_individuals]
@@ -125,10 +138,10 @@ def lookahead_crossover(parent1, parent2, cube, lookahead_depth):
     intermediate_cube1 = copy.deepcopy(cube)
     intermediate_cube2 = copy.deepcopy(cube)
 
-    for i in range(len(parent1[0])):
+    for i in range(len(parent1)):
         # look ahead
-        lookahead_moves1 = parent1[0][i:i + lookahead_depth]
-        lookahead_moves2 = parent2[0][i:i + lookahead_depth]
+        lookahead_moves1 = parent1[i:i + lookahead_depth]
+        lookahead_moves2 = parent2[i:i + lookahead_depth]
 
         # apply lookahead moves to separate copies of the cube for each child
         future_cube1_for_child1 = apply_moves(copy.deepcopy(intermediate_cube1), lookahead_moves1)
@@ -144,22 +157,22 @@ def lookahead_crossover(parent1, parent2, cube, lookahead_depth):
 
         # choose best move for child1
         if fitness1_for_child1 <= fitness2_for_child1:
-            chosen_move_for_child1 = parent1[0][i]
-            alternate_move_for_child2 = parent2[0][i]
+            chosen_move_for_child1 = parent1[i]
+            alternate_move_for_child2 = parent2[i]
         else:
-            chosen_move_for_child1 = parent2[0][i]
-            alternate_move_for_child2 = parent1[0][i]
+            chosen_move_for_child1 = parent2[i]
+            alternate_move_for_child2 = parent1[i]
 
         # choose second-best move for child2, if fitness are equal prefer parent2
         if fitness1_for_child2 < fitness2_for_child2 or \
                 (fitness1_for_child2 == fitness2_for_child2 and
-                 alternate_move_for_child2 == parent2[0][i]):
+                 alternate_move_for_child2 == parent2[i]):
             chosen_move_for_child2 = alternate_move_for_child2
         else:
-            if alternate_move_for_child2 == parent1[0][i]:
-                chosen_move_for_child2 = parent2[0][i]
+            if alternate_move_for_child2 == parent1[i]:
+                chosen_move_for_child2 = parent2[i]
             else:
-                chosen_move_for_child2 = parent1[0][i]
+                chosen_move_for_child2 = parent1[i]
 
         # apply chosen move to intermediate cube and add to child moves
         intermediate_cube1 = rubiks.make_move(intermediate_cube1, chosen_move_for_child1)
@@ -171,18 +184,123 @@ def lookahead_crossover(parent1, parent2, cube, lookahead_depth):
     return child1_moves, child2_moves
 
 
-parent01 = init_population(pop_size=1)
-parent02 = init_population(pop_size=1)
+# point mutation
+# def mutate(sequence, mutation_rate=0.1):  # Mutate a sequence of moves with given probability (mutation_rate)"
+#     new_sequence = sequence.copy()
+#     for i in range(len(new_sequence)):
+#         if random.random() < mutation_rate:
+#             new_sequence[i] = random.choice(moves)  # replace with a random move
+#     return new_sequence
 
-print(f"parent1: {parent01}")
-print(f"parent2: {parent02}")
+# scramble mutation
+# def mutate_with_scramble(sequence, mutation_rate=0.1):
+#     new_sequence = sequence.copy()
+#     length = len(new_sequence)
+#     if random.random() < mutation_rate:
+#         # determine starting and ending points of subset to scramble
+#         start = random.randint(0, length - 2)
+#         end = random.randint(start + 1, length - 1)
+#
+#         # extract subset and shuffle it
+#         subset = new_sequence[start:end]
+#         random.shuffle(subset)
+#
+#         # reinsert shuffled subset back into the sequence
+#         new_sequence[start:end] = subset
+#
+#     return new_sequence
 
-result = lookahead_crossover(parent01, parent02, scramble_cube(cube_dev, moves), 2)
 
-print(result)
+def mutate_with_permutation(sequence, permutations_=permutations, mutation_rate=0.1):
+    new_sequence = sequence.copy()
+    length = len(new_sequence)
+    if random.random() < mutation_rate:
+        permutation = random.choice(permutations_)  # select random permutation from list
+        start = random.randint(0, length - len(permutations_))  # determine segment of individual sequence to replace
+        end = start + len(permutations_)
+        new_sequence[start:end] = permutations_  # replace segment with the permutation
 
-test1, test2 = result
-print(test1 == test2)
+    return new_sequence
+
+
+def run_genetic_algorithm(cube, generations=100, pop_size=100, sequence_length=25):
+    try:
+        population = init_population_with_permutations(pop_size, sequence_length)
+
+        for generation in range(generations):
+            print(f"Generation {generation + 1}")
+
+            new_population = []
+
+            for seq in population:
+                if check_fitness(cube, seq) == 0:
+                    print(f"Solution found in generation {generation + 1}: {seq}")
+                    return seq
+
+            for _ in range(pop_size // 2):
+                parent1 = tournament_selection(population, cube)
+                parent2 = tournament_selection(population, cube)
+                child1, child2 = lookahead_crossover(parent1, parent2, cube, lookahead_depth=2)
+                new_population.append(mutate_with_permutation(child1))
+                new_population.append(mutate_with_permutation(child2))
+
+            population = new_population
+
+        return "solution not found :("
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+solution = run_genetic_algorithm(cube=scramble_cube(cube_dev, moves), generations=10)
+print(solution)
+
+
+# def run_genetic_algorithm(cube, generations=100, pop_size=100, sequence_length=25):
+#     population = init_population(pop_size, sequence_length)
+#
+#     for generation in range(generations):
+#         print(f"Generation {generation + 1}")
+#
+#         new_population = []
+#
+#         # check if any sequence solves the cube in the current population
+#         for seq in population:
+#             if check_fitness(cube, seq) == 0:
+#                 print(f"Solution found in generation {generation + 1}: {seq}")
+#                 return seq
+#
+#
+#             # selection, crossover, mutation to create new population
+#             for _ in range(pop_size // 2):
+#                 parent1 = tournament_selection(population, cube)
+#                 parent2 = tournament_selection(population, cube)
+#                 child1, child2 = lookahead_crossover(parent1=parent1, parent2=parent2,
+#                                                      cube=cube, lookahead_depth=2)
+#                 new_population.append(mutate(child1))
+#                 new_population.append(mutate(child2))
+#
+#             population = new_population
+
+
+
+# print(scramble_cube(cube_dev, moves))
+
+# parent01 = init_population(pop_size=1)[0]
+# parent02 = init_population(pop_size=1)[0]
+#
+# print(f"parent1: {parent01}")
+# print(f"parent2: {parent02}")
+# #
+# result = lookahead_crossover(parent01, parent02, scramble_cube(cube_dev, moves), 2)
+# #
+# print(f"xover: {result}")
+# #
+# test1, test2 = result
+# print(test1 == test2)
+
+
+
+
 
 
 # def state_aware_crossover(parent1, parent2, cube, crossover_point):
@@ -213,50 +331,40 @@ print(test1 == test2)
 #     return child_moves
 
 
-# point mutation
-def mutate(sequence, mutation_rate=0.1):  # Mutate a sequence of moves with given probability (mutation_rate)"
-    new_sequence = sequence.copy()
-    for i in range(len(new_sequence)):
-        if random.random() < mutation_rate:
-            new_sequence[i] = random.choice(moves)  # replace with a random move
-    return new_sequence
 
 
 # swap mutation
 
-def mutate_with_swap(sequence, mutation_rate=0.1):
-    """Mutate a sequence of moves with given probability (mutation_rate) by swapping two moves."""
-    new_sequence = sequence.copy()
-    length = len(new_sequence)
+# def mutate_with_swap(sequence, mutation_rate=0.1):
+#     """Mutate a sequence of moves with given probability (mutation_rate) by swapping two moves."""
+#     new_sequence = sequence.copy()
+#     length = len(new_sequence)
+#
+#     for _ in range(int(length * mutation_rate)):
+#         if random.random() < mutation_rate:
+#             # Pick two indices to swap that are not the same
+#             idx1, idx2 = random.sample(range(length), 2)
+#             # Swap the moves at these indices
+#             new_sequence[idx1], new_sequence[idx2] = new_sequence[idx2], new_sequence[idx1]
+#
+#     return new_sequence
+#
+#
 
-    for _ in range(int(length * mutation_rate)):
-        if random.random() < mutation_rate:
-            # Pick two indices to swap that are not the same
-            idx1, idx2 = random.sample(range(length), 2)
-            # Swap the moves at these indices
-            new_sequence[idx1], new_sequence[idx2] = new_sequence[idx2], new_sequence[idx1]
-
-    return new_sequence
 
 
-# scramble mutation
-def mutate_with_scramble(sequence, mutation_rate=0.1):
-    """Mutate a given sequence of moves by scrambling a subset with a given probability (mutation_rate)."""
-    new_sequence = sequence.copy()
-    length = len(new_sequence)
-    if random.random() < mutation_rate:
-        # Determine the starting and ending points of the subset to scramble
-        start = random.randint(0, length - 2)
-        end = random.randint(start + 1, length - 1)
-
-        # Extract the subset and shuffle it
-        subset = new_sequence[start:end]
-        random.shuffle(subset)
-
-        # Reinsert the shuffled subset back into the sequence
-        new_sequence[start:end] = subset
-
-    return new_sequence
+# parent01 = init_population(pop_size=1)
+# parent02 = init_population(pop_size=1)
+#
+# print(f"parent1: {parent01}")
+# print(f"parent2: {parent02}")
+#
+# result = lookahead_crossover(parent01, parent02, scramble_cube(cube_dev, moves), 2)
+#
+# print(result)
+#
+# test1, test2 = result
+# print(test1 == test2)
 
 
 # scramble the cube with the shuffled moves
