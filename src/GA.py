@@ -74,8 +74,6 @@ def apply_moves(cube, moves_sequence):
 def random_sequence(length=25):
     return [random.choice(moves) for _ in range(length)]
 
-# print(random_sequence())
-
 
 def init_population(pop_size=100, sequence_length=25):
     return [random_sequence(sequence_length) for _ in range(pop_size)]
@@ -122,63 +120,97 @@ def tournament_selection(population, cube, tournament_size=3):
 
 # cross over
 def lookahead_crossover(parent1, parent2, cube, lookahead_depth):
-    child_moves = []
-    intermediate_cube = copy.deepcopy(cube)
+    child1_moves = []
+    child2_moves = []
+    intermediate_cube1 = copy.deepcopy(cube)
+    intermediate_cube2 = copy.deepcopy(cube)
 
-    # ensure moves are same length
-    assert len(parent1) == len(parent2)
-
-    for i in range(len(parent1)):
+    for i in range(len(parent1[0])):
         # look ahead
-        lookahead_moves1 = parent1[i:i + lookahead_depth]
-        lookahead_moves2 = parent2[i:i + lookahead_depth]
+        lookahead_moves1 = parent1[0][i:i + lookahead_depth]
+        lookahead_moves2 = parent2[0][i:i + lookahead_depth]
 
-        # apply lookahead moves to separate copies of the cube
-        # future_cube1 = apply_moves(copy.deepcopy(intermediate_cube), lookahead_moves1)
-        # future_cube2 = apply_moves(copy.deepcopy(intermediate_cube), lookahead_moves2)
+        # apply lookahead moves to separate copies of the cube for each child
+        future_cube1_for_child1 = apply_moves(copy.deepcopy(intermediate_cube1), lookahead_moves1)
+        future_cube2_for_child1 = apply_moves(copy.deepcopy(intermediate_cube1), lookahead_moves2)
+        future_cube1_for_child2 = apply_moves(copy.deepcopy(intermediate_cube2), lookahead_moves1)
+        future_cube2_for_child2 = apply_moves(copy.deepcopy(intermediate_cube2), lookahead_moves2)
 
-        future_cube1 = copy.deepcopy(intermediate_cube)
-        future_cube2 = copy.deepcopy(intermediate_cube)
+        # evaluate which future state is better for each child
+        fitness1_for_child1 = check_fitness(future_cube1_for_child1, lookahead_moves1)
+        fitness2_for_child1 = check_fitness(future_cube2_for_child1, lookahead_moves2)
+        fitness1_for_child2 = check_fitness(future_cube1_for_child2, lookahead_moves1)
+        fitness2_for_child2 = check_fitness(future_cube2_for_child2, lookahead_moves2)
 
-        # evaluate which future state is better
-        if check_fitness(future_cube1, lookahead_moves1) < check_fitness(future_cube2, lookahead_moves2):
-            chosen_move = parent1[i]
+        # choose best move for child1
+        if fitness1_for_child1 <= fitness2_for_child1:
+            chosen_move_for_child1 = parent1[0][i]
+            alternate_move_for_child2 = parent2[0][i]
         else:
-            chosen_move = parent2[i]
+            chosen_move_for_child1 = parent2[0][i]
+            alternate_move_for_child2 = parent1[0][i]
+
+        # choose second-best move for child2, if fitness are equal prefer parent2
+        if fitness1_for_child2 < fitness2_for_child2 or \
+                (fitness1_for_child2 == fitness2_for_child2 and
+                 alternate_move_for_child2 == parent2[0][i]):
+            chosen_move_for_child2 = alternate_move_for_child2
+        else:
+            if alternate_move_for_child2 == parent1[0][i]:
+                chosen_move_for_child2 = parent2[0][i]
+            else:
+                chosen_move_for_child2 = parent1[0][i]
 
         # apply chosen move to intermediate cube and add to child moves
-        intermediate_cube = rubiks.make_move(intermediate_cube, chosen_move)
-        child_moves.append(chosen_move)
+        intermediate_cube1 = rubiks.make_move(intermediate_cube1, chosen_move_for_child1)
+        child1_moves.append(chosen_move_for_child1)
 
-    return child_moves
+        intermediate_cube2 = rubiks.make_move(intermediate_cube2, chosen_move_for_child2)
+        child2_moves.append(chosen_move_for_child2)
+
+    return child1_moves, child2_moves
 
 
-def state_aware_crossover(parent1, parent2, cube, crossover_point):
-    # apply first part of parent1 moves
-    child_moves = parent1[:crossover_point]
-    intermediate_cube = apply_moves(cube, child_moves)
+parent01 = init_population(pop_size=1)
+parent02 = init_population(pop_size=1)
 
-    # evaluate effectiveness of each subsequent move in parent1 and parent2
-    for i in range(crossover_point, len(parent1)):
-        move1 = parent1[i]
-        move2 = parent2[i]
+print(f"parent1: {parent01}")
+print(f"parent2: {parent02}")
 
-        # simulate moves
-        # cube_after_move1 = rubiks.make_move(copy.deepcopy(intermediate_cube), move1)
-        # cube_after_move2 = rubiks.make_move(copy.deepcopy(intermediate_cube), move2)
+result = lookahead_crossover(parent01, parent02, scramble_cube(cube_dev, moves), 2)
 
-        cube_after_move1 = copy.deepcopy(intermediate_cube)
-        cube_after_move2 = copy.deepcopy(intermediate_cube)
+print(result)
 
-        # choose move resulting in cube state closer to being solved
-        if check_fitness(cube_after_move1, move1) < check_fitness(cube_after_move2, move2):
-            child_moves.append(move1)
-            intermediate_cube = cube_after_move1
-        else:
-            child_moves.append(move2)
-            intermediate_cube = cube_after_move2
+test1, test2 = result
+print(test1 == test2)
 
-    return child_moves
+
+# def state_aware_crossover(parent1, parent2, cube, crossover_point):
+#     # apply first part of parent1 moves
+#     child_moves = parent1[:crossover_point]
+#     intermediate_cube = apply_moves(cube, child_moves)
+#
+#     # evaluate effectiveness of each subsequent move in parent1 and parent2
+#     for i in range(crossover_point, len(parent1)):
+#         move1 = parent1[i]
+#         move2 = parent2[i]
+#
+#         # simulate moves
+#         # cube_after_move1 = rubiks.make_move(copy.deepcopy(intermediate_cube), move1)
+#         # cube_after_move2 = rubiks.make_move(copy.deepcopy(intermediate_cube), move2)
+#
+#         cube_after_move1 = copy.deepcopy(intermediate_cube)
+#         cube_after_move2 = copy.deepcopy(intermediate_cube)
+#
+#         # choose move resulting in cube state closer to being solved
+#         if check_fitness(cube_after_move1, move1) < check_fitness(cube_after_move2, move2):
+#             child_moves.append(move1)
+#             intermediate_cube = cube_after_move1
+#         else:
+#             child_moves.append(move2)
+#             intermediate_cube = cube_after_move2
+#
+#     return child_moves
 
 
 # point mutation
@@ -228,8 +260,8 @@ def mutate_with_scramble(sequence, mutation_rate=0.1):
 
 
 # scramble the cube with the shuffled moves
-scrambled_cube = scramble_cube(cube_dev, moves)
-print(f"new cube is: {scrambled_cube}")
+# scrambled_cube = scramble_cube(cube_dev, moves)
+# print(f"new cube is: {scrambled_cube}")
 
 # print(f"winner: {tournament_selection(init_population(), cube_dev)}")
 # print(apply_moves(cube_dev,moves))
