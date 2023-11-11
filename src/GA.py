@@ -2,7 +2,11 @@ import random
 import copy
 import rubiks
 
-moves = ["U", "U'", "R", "R'", "L", "L'", "D", "D'", "F", "F'", "B", "B'"]
+# moves = ["U", "U'", "R", "R'", "L", "L'", "D", "D'", "F", "F'", "B", "B'"]
+
+moves = ["B", "B'", "B2", "D", "D'", "D2", "E", "E'", "E2", "F", "F'", "F2", "L", "L'", "L2", "M", "M'", "M2",
+         "R", "R'", 'S', "S'", "S2", "U", "U'", "U2", "b", "b'", "b2", "d", "d'", "d2", "f", "f'", "f2", "l",
+         "l'", "l2", "r", "r'", "r2", "u", "u'", "x", "x'", "y", "y'", "z", "z'"]
 
 permutations = [  # borrowed from https://github.com/rvaccarim/genetic_rubik
     # permutes two edges: U face, bottom edge and right edge

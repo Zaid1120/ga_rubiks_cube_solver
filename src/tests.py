@@ -9,9 +9,10 @@ class RubiksCubeTests(unittest.TestCase):
         self.assertTrue(rubiks.is_solved(rubiks.cube_main), "cube should start in a solved state")
 
     def test_single_rotation(self):
-        test_cube = copy.deepcopy(rubiks.cube_main)
+        test_cube = copy.deepcopy(rubiks.cube_dev)
         test_cube = rubiks.make_move(test_cube, "F")
-        self.assertFalse(rubiks.is_solved(test_cube), "cube should not be solved after a single F move")
+        # self.assertFalse(rubiks.is_solved(test_cube), "cube should not be solved after a single F move")
+        self.assertNotEqual(test_cube, rubiks.cube_dev)
 
     def test_multiple_rotations(self):
         test_cube = copy.deepcopy(rubiks.cube_main)
@@ -33,22 +34,47 @@ class RubiksCubeTests(unittest.TestCase):
             self.assertTrue(rubiks.is_solved(test_cube),
                             f"cube should be solved after rotating {move1} 3 times followed by {move2} 3 times.")
 
+    # def test_solution_check(self):
+    #     test_cube = copy.deepcopy(rubiks.cube_main)
+    #     self.assertTrue(rubiks.is_solved(test_cube), "initial cube should be solved.")
+    #
+    #     test_cube = rubiks.make_move(test_cube, "L")
+    #     self.assertFalse(rubiks.is_solved(test_cube), "cube should not be solved after an L move.")
+    #
+    #     test_cube = rubiks.make_move(test_cube, "L'")
+    #     self.assertTrue(rubiks.is_solved(test_cube), "cube should be solved after an L followed by an L' move.")
+
     def test_solution_check(self):
-        test_cube = copy.deepcopy(rubiks.cube_main)
-        self.assertTrue(rubiks.is_solved(test_cube), "initial cube should be solved.")
+        test_cube = copy.deepcopy(rubiks.cube_dev)
+        # self.assertTrue(rubiks.is_solved(test_cube), "initial cube should be solved.")
+        self.assertEqual(test_cube, rubiks.cube_dev)
 
         test_cube = rubiks.make_move(test_cube, "L")
-        self.assertFalse(rubiks.is_solved(test_cube), "cube should not be solved after an L move.")
+        self.assertNotEqual(test_cube, rubiks.cube_dev)
+        # self.assertFalse(rubiks.is_solved(test_cube), "cube should not be solved after an L move.")
 
         test_cube = rubiks.make_move(test_cube, "L'")
-        self.assertTrue(rubiks.is_solved(test_cube), "cube should be solved after an L followed by an L' move.")
+        # self.assertTrue(rubiks.is_solved(test_cube), "cube should be solved after an L followed by an L' move.")
+        self.assertEqual(test_cube, rubiks.cube_dev)
+
+    # def test_different_moves(self):
+    #     test_cube = copy.deepcopy(rubiks.cube_main)
+    #     moves = ["U", "U2", "R", "x", "L", "L2", "M", "M2", "D", "D2", "y", "F", "F2", "z", "B", "B2",
+    #              "B2", "B'", "z'", "F2", "F'", "y'", "D2", "D'", "M2", "M'", "L2", "L'", "x'", "R'", "U2", "U'"]
+    #     for i in moves:
+    #         rubiks.make_move(test_cube, i)
+    #     self.assertTrue(rubiks.is_solved(test_cube)), "cube should be solved after symmetric moves"
 
     def test_different_moves(self):
-        test_cube = copy.deepcopy(rubiks.cube_main)
-        moves = ["U", "R", "L", "D", "F", "B", "B'", "F'", "D'", "L'", "R'", "U'"]
+        test_cube = copy.deepcopy(rubiks.cube_dev)
+        moves = ["d", "r", "U", "d2", "E", "E2", "U2", "f'", "f2", "R", "r2", "l", "x", "L", "L2", "l2", "M", "u", "M2",
+                 "D", "b2", "b", "S", "D2", "S2", "y", "F", "F2", "z", "B", "B2", "B2", "B'", "z'", "F2", "F'", "y'",
+                 "S2", "D2", "S'", "b'", "b2", "D'", "M2", "u'", "M'", "l2", "L2", "L'", "x'", "l'", "r2", "R'", "f2",
+                 "f", "U2", "E2", "E'", "d2", "U'", "r'", "d'"]
         for i in moves:
             rubiks.make_move(test_cube, i)
-        self.assertTrue(rubiks.is_solved(test_cube)), "cube should be solved after symmetric moves"
+        # self.assertTrue(rubiks.is_solved(test_cube)), "cube should be solved after symmetric moves"
+        self.assertEqual(test_cube, rubiks.cube_dev)
 
 
 if __name__ == "__main__":
