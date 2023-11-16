@@ -132,22 +132,18 @@ def scramble_mutation(sequence):
 
 # print(scramble_mutation(['D2', "d'", "f'", 'b2', 'E2', "D4", "P1", 'v2', "h'", "r'" ]))
 
-# def run_genetic_algorithm(cube, generations=20, pop_size=100, sequence_length=21, elitism_count=2, tournament_size=10, mutation_rate=0.1):
-def run_genetic_algorithm(cube, generations=10, pop_size=12, sequence_length=20, elitism_count=2, tournament_size=10, mutation_rate=0.1):
+
+def run_genetic_algorithm(cube, generations=2000, pop_size=100, sequence_length=20, elitism_count=2, tournament_size=10, mutation_rate=0.1):
     population = init_population(pop_size, sequence_length)
-    # stagnation_counter = 0  # counter to track stagnation
-    print(f" initial population: {population}")
 
     for generation in range(generations):
-        print(f"\nGeneration {generation + 1}")
+        print(f"Generation {generation + 1}")
 
-        # evaulate fitness of each individual in the population
+        # evaluate fitness of each individual in the population
         fitness_scores = [(sequence, check_fitness(cube, sequence)) for sequence in population]
 
         # sort population by fitness scores in ascending order (lower is better)
         sorted_population = sorted(fitness_scores, key=lambda x: x[1])
-
-        print(f" sorted pop: {sorted_population}")
 
         # get the best fitness score in this generation
         best_fitness_score = sorted_population[0][1]
@@ -159,21 +155,7 @@ def run_genetic_algorithm(cube, generations=10, pop_size=12, sequence_length=20,
             print(f"Solution found in generation {generation + 1}: {solution_sequence}")
             return solution_sequence
 
-        # if best_fitness_score <= sorted_population[0][1]:
-        #     stagnation_counter += 1
-        # else:
-        #     best_fitness_score = sorted_population[0][1]
-        #     stagnation_counter = 0
-
-        # if stagnation_counter >= 5:
-        #     # Stagnation detected, apply strategies to reintroduce diversity
-        #     mutation_rate *= 2
-        #     last_few = sequence_length-2
-        #     init_population(pop_size-2, sequence_length)
-        #
-        #     stagnation_counter = 0  # Reset the stagnation counter
-
-        # carry over the best elitism_count individuals to the new population - PROBLEM HERE?
+        # carry over the best 'elitism_count' individuals to the new population
         new_population = [sequence for sequence, fitness in sorted_population[:elitism_count]]
 
         # tournament selection, crossover, and mutation
@@ -183,30 +165,101 @@ def run_genetic_algorithm(cube, generations=10, pop_size=12, sequence_length=20,
 
             # perform crossover
             offspring1, offspring2 = two_point_crossover(parent1, parent2)
+
             # apply scramble mutation based on mutation_rate
             if random.random() < mutation_rate:
-                print("offspring 1 got mutated")
                 offspring1 = scramble_mutation(offspring1)
             if random.random() < mutation_rate:
-                print("offspring 2 got mutated")
                 offspring2 = scramble_mutation(offspring2)
 
-            # add offspring to the new population
-            new_population.append(offspring1)
-            new_population.append(offspring2)
+            # add offspring to the new population not to exceed pop_size
+            if len(new_population) < pop_size:
+                new_population.append(offspring1)
+            if len(new_population) < pop_size:
+                new_population.append(offspring2)
 
-        print(f"\nold population: {population}")
-        print(f"new population: {new_population} \n")
-
-        print(f"old population last element: {population[-1]}")
-        print(f"new population last element: {new_population[-1]} \n")
-
-        print(f"old population length: {len(population)}")
-        print(f"new population length: {len(new_population)} \n \n")
-        population = new_population  # update population
+        population = new_population
 
     print("No solution found within the given generations.")
     return None
+
+
+
+# def run_genetic_algorithm(cube, generations=20, pop_size=100, sequence_length=21, elitism_count=2, tournament_size=10, mutation_rate=0.1):
+# def run_genetic_algorithm(cube, generations=200, pop_size=1000, sequence_length=25, elitism_count=7, tournament_size=10, mutation_rate=0.1):
+#     population = init_population(pop_size, sequence_length)
+#     # stagnation_counter = 0  # counter to track stagnation
+#     # print(f" initial population: {population}")
+#
+#     for generation in range(generations):
+#         print(f"\nGeneration {generation + 1}")
+#
+#         # evaulate fitness of each individual in the population
+#         fitness_scores = [(sequence, check_fitness(cube, sequence)) for sequence in population]
+#
+#         # sort population by fitness scores in ascending order (lower is better)
+#         sorted_population = sorted(fitness_scores, key=lambda x: x[1])
+#
+#         # print(f" sorted pop: {sorted_population}")
+#
+#         # get the best fitness score in this generation
+#         best_fitness_score = sorted_population[0][1]
+#         # print(f"Best fitness score in generation {generation + 1}: {best_fitness_score}")
+#
+#         # check if any sequence solves the cube
+#         if best_fitness_score == 0:
+#             solution_sequence = sorted_population[0][0]
+#             print(f"Solution found in generation {generation + 1}: {solution_sequence}")
+#             return solution_sequence
+#
+#         # if best_fitness_score <= sorted_population[0][1]:
+#         #     stagnation_counter += 1
+#         # else:
+#         #     best_fitness_score = sorted_population[0][1]
+#         #     stagnation_counter = 0
+#
+#         # if stagnation_counter >= 5:
+#         #     # Stagnation detected, apply strategies to reintroduce diversity
+#         #     mutation_rate *= 2
+#         #     last_few = sequence_length-2
+#         #     init_population(pop_size-2, sequence_length)
+#         #
+#         #     stagnation_counter = 0  # Reset the stagnation counter
+#
+#         # carry over the best elitism_count individuals to the new population - PROBLEM HERE?
+#         new_population = [sequence for sequence, fitness in sorted_population[:elitism_count]]
+#
+#         # tournament selection, crossover, and mutation
+#         while len(new_population) < pop_size:
+#             parent1 = tournament_selection(population, cube, tournament_size)
+#             parent2 = tournament_selection(population, cube, tournament_size)
+#
+#             # perform crossover
+#             offspring1, offspring2 = two_point_crossover(parent1, parent2)
+#             # apply scramble mutation based on mutation_rate
+#             if random.random() < mutation_rate:
+#                 # print("offspring 1 got mutated")
+#                 offspring1 = scramble_mutation(offspring1)
+#             if random.random() < mutation_rate:
+#                 # print("offspring 2 got mutated")
+#                 offspring2 = scramble_mutation(offspring2)
+#
+#             # add offspring to the new population
+#             new_population.append(offspring1)
+#             new_population.append(offspring2)
+#
+#         # print(f"\nold population: {population}")
+#         # print(f"new population: {new_population} \n")
+#         #
+#         # print(f"old population last element: {population[-1]}")
+#         # print(f"new population last element: {new_population[-1]} \n")
+#         #
+#         # print(f"old population length: {len(population)}")
+#         # print(f"new population length: {len(new_population)} \n \n")
+#         population = new_population  # update population
+#
+#     print("No solution found within the given generations.")
+#     return None
 
 
 
