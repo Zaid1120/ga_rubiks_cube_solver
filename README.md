@@ -1,2 +1,3 @@
 # ga_rubiks_cube_solver
-hello
+
+Exploring genetic algorithms to solve a rubik's cube.
